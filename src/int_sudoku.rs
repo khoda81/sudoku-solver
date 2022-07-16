@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::sudoku::Sudoku;
+use crate::sudoku::SudokuSolver;
 
 pub struct IntegerSudoku {
     board: [[u32; 9]; 9],
@@ -53,7 +53,7 @@ impl IntegerSudoku {
     }
 }
 
-impl Sudoku for IntegerSudoku {
+impl SudokuSolver for IntegerSudoku {
     fn new(board: [[u32; 9]; 9]) -> Self {
         IntegerSudoku { board }
     }

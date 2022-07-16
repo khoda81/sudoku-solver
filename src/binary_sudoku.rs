@@ -1,11 +1,6 @@
-use std::{
-    fmt::Display,
-    io::{self, Write},
-    thread,
-    time::Duration,
-};
+use std::{fmt::Display, io::Write, thread, time::Duration};
 
-use crate::sudoku::Sudoku;
+use crate::sudoku::SudokuSolver;
 
 pub struct BinarySudoku {
     pub masks: [[u32; 9]; 9],
@@ -16,37 +11,41 @@ impl BinarySudoku {
     fn assert_cell(&mut self, i: usize, j: usize, value: u32) {
         self.board[i][j] = value + 1;
 
-        let mask = 1 << value;
-
-        for i in 0..9 {
-            self.masks[i][j] &= !mask;
+        let mask = !(1 << value);
+        if self.masks[i][j] & !mask == 0 {
+            panic!("Cannot insert {} at ({}, {})", value + 1, i, j);
         }
 
-        for j in 0..9 {
-            self.masks[i][j] &= !mask;
+        for x in 0..9 {
+            self.masks[i][x] &= mask;
+            self.masks[x][j] &= mask;
         }
 
         let row_start = (i / 3) * 3;
         let col_start = (j / 3) * 3;
-
         for i in 0..3 {
             for j in 0..3 {
-                self.masks[row_start + i][col_start + j] &= !mask;
+                self.masks[row_start + i][col_start + j] &= mask;
             }
         }
 
-        self.masks[i][j] = mask;
+        self.masks[i][j] &= !mask;
     }
 
-    fn find_best_cell(&self) -> (usize, usize) {
-        let mut best_cell = (0, 0);
-        let mut num_options = 9;
+    fn find_best_cell(&self) -> Option<(usize, usize)> {
+        let mut best_cell = None;
+        let mut best_num_options = 10;
 
         for i in 0..9 {
             for j in 0..9 {
-                if self.board[i][j] == 0 && self.masks[i][j].count_ones() < num_options {
-                    num_options = self.masks[i][j].count_ones();
-                    best_cell = (i, j);
+                if self.board[i][j] == 0 {
+                    // if this cell is not solved
+                    let num_options = self.masks[i][j].count_ones();
+                    if num_options < best_num_options {
+                        // if we have less options
+                        best_num_options = num_options;
+                        best_cell = Some((i, j));
+                    }
                 }
             }
         }
@@ -67,36 +66,9 @@ impl BinarySudoku {
 
         count
     }
-
-    fn solve_cells(&mut self, remaining: u32) -> bool {
-        if remaining <= 0 {
-            return true;
-        }
-
-        let (i, j) = self.find_best_cell();
-        let prev_masks = self.masks.clone();
-        for value in 0..9 {
-            let value_mask = 1 << value;
-            if self.masks[i][j] & value_mask != 0 {
-                self.assert_cell(i, j, value);
-
-                // println!("\n({}, {}), {}", i, j, value);
-                // println!("{}", self);
-                // thread::sleep(Duration::from_millis(200));
-
-                if self.solve_cells(remaining - 1) {
-                    return true;
-                }
-
-                self.masks = prev_masks.clone();
-            }
-        }
-
-        false
-    }
 }
 
-impl Sudoku for BinarySudoku {
+impl SudokuSolver for BinarySudoku {
     fn new(board: [[u32; 9]; 9]) -> Self {
         let mut this = BinarySudoku {
             masks: [[0b111111111; 9]; 9],
@@ -115,8 +87,30 @@ impl Sudoku for BinarySudoku {
     }
 
     fn solve(&mut self) -> bool {
-        let remaining = self.count_remaining();
-        self.solve_cells(remaining)
+        let (i, j) = match self.find_best_cell() {
+            None => return true,
+            Some(key) => key,
+        };
+
+        let prev_masks = self.masks.clone();
+        for value in 0..9 {
+            let value_mask = 1 << value;
+            if self.masks[i][j] & value_mask != 0 {
+                self.assert_cell(i, j, value);
+
+                println!("{}", self);
+                thread::sleep(Duration::from_millis(50));
+
+                if self.solve() {
+                    return true;
+                }
+
+                self.masks = prev_masks.clone();
+            }
+        }
+
+        self.board[i][j] = 0;
+        false
     }
 }
 
