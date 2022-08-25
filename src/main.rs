@@ -1,21 +1,11 @@
-mod sudoku;
-
-mod binary_sudoku;
-mod int_sudoku;
-
 use std::{
     fmt::Display,
     time::{self, Duration, Instant},
 };
 
-use binary_sudoku::BinarySudoku;
-use int_sudoku::IntegerSudoku;
-
-use sudoku::SudokuSolver;
+use sudoku_solver::{BinarySudoku, IntegerSudoku, SudokuSolver};
 
 fn main() {
-    // sudoku board
-
     // let board = [
     //     [0, 0, 3, 0, 2, 0, 6, 0, 0],
     //     [9, 0, 0, 3, 0, 5, 0, 0, 1],
@@ -58,30 +48,18 @@ fn main() {
     //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    //     [0, 0, 0, 0, 0, 1, 0, 0, 0],
     //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    //     [0, 0, 0, 0, 0, 0, 0, 0, 1],
     // ];
 
     let board = [[0; 9]; 9];
 
-    let mut total_time = Duration::ZERO;
-    let n = 100000;
-    for _ in 0..n {
-        // total_time += benchmark::<IntegerSudoku>(board);
-        total_time += benchmark::<BinarySudoku>(board);
-    }
-
-    println!("{:?}", total_time / n);
-}
-
-fn benchmark<Board: SudokuSolver + Display>(board: [[u32; 9]; 9]) -> time::Duration {
-    let mut board = Board::new(board);
-
+    let mut board = BinarySudoku::new(board);
     let start = Instant::now();
     board.solve();
-
-    let elapsed = start.elapsed();
-    elapsed
+    let duration = start.elapsed();
+    println!("{}", board);
+    println!("{:?}", duration);
 }

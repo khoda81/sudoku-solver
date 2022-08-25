@@ -7,6 +7,19 @@ pub struct IntegerSudoku {
 }
 
 impl IntegerSudoku {
+    /// Solves the Sudoku board using backtracking
+    ///
+    /// # Arguments
+    ///
+    /// * `row` - the row index of the cell to solve
+    /// * `col` - the column index of the cell to solve
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let mut board = IntegerSudoku::new([[0; 9]; 9]);
+    /// board.solve_cell(0, 0);
+    /// ```
     pub fn solve_cell(&mut self, row: usize, col: usize) -> bool {
         if row == 9 {
             return true;
@@ -29,6 +42,20 @@ impl IntegerSudoku {
         false
     }
 
+    /// Returns true if the number is valid for the given row and column.
+    ///
+    /// # Arguments
+    ///
+    /// * `row` - The row of the board.
+    /// * `col` - The column of the board.
+    /// * `num` - The number to check.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut board = Board::new();
+    /// assert!(board.is_valid(0, 0, 1));
+    /// ```
     pub fn is_valid(&self, row: usize, col: usize, num: u32) -> bool {
         for i in 0..9 {
             if self.board[row][i] == num {
@@ -54,23 +81,56 @@ impl IntegerSudoku {
 }
 
 impl SudokuSolver for IntegerSudoku {
+    /// Create a new IntegerSudoku from a 9x9 array of u32s.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sudoku::IntegerSudoku;
+    ///
+    /// let board = [[0; 9]; 9];
+    /// let sudoku = IntegerSudoku::new(board);
+    /// ```
     fn new(board: [[u32; 9]; 9]) -> Self {
         IntegerSudoku { board }
     }
 
+    /// Solve the sudoku puzzle.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the puzzle is solved, `false` otherwise.
     fn solve(&mut self) -> bool {
         self.solve_cell(0, 0)
     }
 }
 
 impl Display for IntegerSudoku {
+    /// Prints the Sudoku board to the given formatter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sudoku::Sudoku;
+    ///
+    /// let mut sudoku = Sudoku::new();
+    /// sudoku.board[0][0] = 1;
+    ///
+    /// println!("{}", sudoku);
+    /// ```
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for i in 0..9 {
             for j in 0..9 {
                 if self.board[i][j] == 0 {
-                    write!(f, ". ")?;
+                    write!(f, ".")?;
                 } else {
-                    write!(f, "{} ", self.board[i][j])?;
+                    write!(f, "{}", self.board[i][j])?;
+                }
+
+                if j % 3 == 2 {
+                    write!(f, " ")?;
+                } else {
+                    write!(f, "|")?;
                 }
             }
 
